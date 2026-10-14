@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huffman vs Shannon-Fano & Code Analyzer | Discrete Mathematics</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --accent-huff: #0284c7;
+      --accent-sf: #059669;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", Monaco, "Cascadia Code", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 24px 16px;
+    }
+
+    .container { max-width: 1240px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
+    }
+    header h1 { font-size: 26px; color: #0f172a; font-weight: 800; margin-bottom: 6px; }
+    header p { color: var(--text-muted); font-size: 14px; }
+
+    /* Nav Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn:hover { background: #f8fafc; color: var(--text-main); }
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .card h2 { font-size: 18px; margin-bottom: 12px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+
+    /* Input area */
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #000000; }
+    .text-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #000000;
+      background: #ffffff;
+      transition: border 0.2s;
+    }
+    .text-input:focus { outline: none; border-color: var(--primary); }
+
+    .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .preset-chip {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .preset-chip:hover { background: #e2e8f0; }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+    }
+    .metric-card.highlight-huff { border-top: 3px solid var(--accent-huff); }
+    .metric-card.highlight-sf { border-top: 3px solid var(--accent-sf); }
+    .metric-card.highlight-entropy { border-top: 3px solid #8b5cf6; }
+    .metric-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
+    .metric-value { font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: var(--mono); }
+    .metric-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Tables */
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th {
+      background: #f8fafc;
+      padding: 10px 12px;
+      font-weight: 700;
+      color: #475569;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-family: var(--mono); }
+    tr:hover td { background: #f8fafc; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-huff { background: #e0f2fe; color: #0369a1; }
+    .badge-sf { background: #dcfce7; color: #15803d; }
+    .badge-pass { background: var(--success-light); color: var(--success); }
+    .badge-fail { background: var(--danger-light); color: var(--danger); }
+    .badge-warn { background: var(--warning-light); color: var(--warning); }
+
+    /* Binary view */
+    .bin-box {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: var(--mono);
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      word-break: break-all;
+      margin-top: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    /* Trees layout */
+    .trees-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .trees-grid { grid-template-columns: 1fr; }
+    }
+    .tree-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fafcff;
+      padding: 12px;
+    }
+    .tree-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; text-align: center; }
+    .tree-canvas-wrap {
+      overflow: auto;
+      max-height: 480px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+    svg.tree-svg { display: block; }
+
+    /* Custom Code Tester */
+    .status-banner {
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .status-banner.pass { background: var(--success-light); border: 1.5px solid var(--success); color: #065f46; }
+    .status-banner.fail { background: var(--danger-light); border: 1.5px solid var(--danger); color: #991b1b; }
+    .status-banner.warn { background: var(--warning-light); border: 1.5px solid var(--warning); color: #92400e; }
+
+    /* Formulas Card */
+    .formula-block {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .formula-title { font-weight: 700; color: #1e293b; font-size: 14px; margin-bottom: 4px; }
+    .formula-math { font-family: var(--mono); color: #0369a1; font-size: 15px; margin: 6px 0; font-weight: 700; }
+    .formula-desc { font-size: 13px; color: var(--text-muted); }
+
+    .ds-card {
+      background: #ffffff;
+      border-left: 4px solid var(--primary);
+      padding: 12px 16px;
+      border-radius: 0 10px 10px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 12px;
+    }
+    .ds-card h4 { font-size: 14px; color: #0f172a; margin-bottom: 4px; }
+    .ds-card p { font-size: 13px; color: #475569; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Huffman vs Shannon-Fano & Code Analyzer</h1>
+    <p>Discrete Mathematics & Information Theory Interactive Suite: Compression, Prefix-Free & Ambiguity Testing</p>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('compressor')">⚡ Compression & Visual Trees</button>
+    <button class="tab-btn" onclick="switchTab('analyzer')">🔍 Custom Code Analyzer (Prefix & Ambiguity)</button>
+    <button class="tab-btn" onclick="switchTab('formulas')">📐 Formulas & Data Structures</button>
+  </div>
+
+  <!-- TAB 1: COMPRESSION & TREES -->
+  <div id="tab-compressor" class="tab-content active">
+    <div class="card">
+      <h2>Input Source Text</h2>
+      <div class="input-group">
+        <label for="textInput">Enter text to compress:</label>
+        <input type="text" id="textInput" class="text-input" value="discrete mathematics" placeholder="Type any text here...">
+        <div class="presets">
+          <span style="font-size:12px; color:var(--text-muted); align-self:center;">Presets:</span>
+          <button class="preset-chip" onclick="setPreset('discrete mathematics')">discrete mathematics</button>
+          <button class="preset-chip" onclick="setPreset('mississippi river')">mississippi river</button>
+          <button class="preset-chip" onclick="setPreset('the quick brown fox jumps over the lazy dog')">pangram</button>
+          <button class="preset-chip" onclick="setPreset('ATCGATCGAAATTCGGCTAGCTAGCTA')">DNA sequence</button>
+        </div>
+      </div>
+
+      <!-- Live KPIs -->
+      <div class="metrics-grid">
+        <div class="metric-card highlight-entropy">
+          <div class="metric-label">Shannon Entropy H(X)</div>
+          <div class="metric-value" id="kpi-entropy">0.000</div>
+          <div class="metric-sub">bits / symbol (lower bound)</div>
+        </div>
+        <div class="metric-card highlight-huff">
+          <div class="metric-label">Huffman Avg Length (L)</div>
+          <div class="metric-value" id="kpi-huff-avg">0.000</div>
+          <div class="metric-sub" id="kpi-huff-eff">Efficiency: 0%</div>
+        </div>
+        <div class="metric-card highlight-sf">
+          <div class="metric-label">Shannon-Fano Avg Length (L)</div>
+          <div class="metric-value" id="kpi-sf-avg">0.000</div>
+          <div class="metric-sub" id="kpi-sf-eff">Efficiency: 0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Compression Sizes</div>
+          <div class="metric-value" style="font-size:16px; margin-top:8px;">
+            Orig: <span id="kpi-orig-bits">0</span>b | H: <span id="kpi-huff-bits">0</span>b | SF: <span id="kpi-sf-bits">0</span>b
+          </div>
+          <div class="metric-sub" id="kpi-winner" style="font-weight:700; color:var(--primary);">Analyzing...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-character bit lengths & code table -->
+    <div class="card">
+      <h2>Per-Character Bit Lengths & Code Comparison</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">
+        Average bit length is calculated as <code>L = &sum; p(x) &times; length(code(x))</code>. Each row shows character count, probability, codeword, bit length, and expected contribution.
+      </p>
+      <div class="table-container">
+        <table id="codesTable">
+          <thead>
+            <tr>
+              <th>Char</th>
+              <th>Count</th>
+              <th>Probability (p)</th>
+              <th>Huffman Code</th>
+              <th>Bits (l)</th>
+              <th>Huffman p&times;l</th>
+              <th>Shannon-Fano Code</th>
+              <th>Bits (l)</th>
+              <th>SF p&times;l</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Binary & Decoded Verification -->
+    <div class="card">
+      <h2>Encoded Bitstreams & Lossless Decoding</h2>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div>
+          <label style="font-size:13px; font-weight:700; color:#0369a1;">Huffman Binary Output:</label>
+          <div id="huffBinary" class="bin-box"></div>
+          <div style="font-size:13px; margin-top:6px; color:#475569;">Decoded: <strong id="huffDecoded" style="color:#0f172a;"></strong></div>
+        </div>
+        <div>
+          <label style="font-size:13px; font-weight:700; color:#15803d;">Shannon-Fano Binary Output:</label>
+          <div id="sfBinary" class="bin-box"></div>
+          <div style="font-size:13px; margin-top:6px; color:#475569;">Decoded: <strong id="sfDecoded" style="color:#0f172a;"></strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Trees -->
+    <div class="card">
+      <h2>Interactive Decoding Trees (Visualizer)</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+        Yellow circles = leaf characters | Blue circles = internal branch nodes | Edge 0 = Left | Edge 1 = Right
+      </p>
+      <div class="trees-grid">
+        <div class="tree-box">
+          <div class="tree-title" style="color:#0284c7;">Huffman Optimal Binary Tree</div>
+          <div class="tree-canvas-wrap">
+            <svg id="huffmanSvg" class="tree-svg"></svg>
+          </div>
+        </div>
+        <div class="tree-box">
+          <div class="tree-title" style="color:#059669;">Shannon-Fano Partitioning Tree</div>
+          <div class="tree-canvas-wrap">
+            <svg id="shannonSvg" class="tree-svg"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: CUSTOM CODE ANALYZER -->
+  <div id="tab-analyzer" class="tab-content">
+    <div class="card">
+      <h2>Custom Code Prefix-Free & Ambiguity Inspector</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
+        Test any custom code alphabet for the <strong>Prefix-Free property</strong>, <strong>Ambiguity / Unique Decodability</strong> (via Sardinas-Patterson algorithm), and the <strong>Kraft-McMillan Inequality</strong>.
+      </p>
+
+      <div class="input-group">
+        <label for="customCodeInput">Enter Symbol-to-Code mapping (e.g. <code>A-10, B-00, C-01</code> or <code>A: 0, B: 01, C: 10</code>):</label>
+        <input type="text" id="customCodeInput" class="text-input" value="A-10, B-00, C-01" style="font-family:var(--mono);">
+        <div class="presets">
+          <span style="font-size:12px; color:var(--text-muted); align-self:center;">Try Presets:</span>
+          <button class="preset-chip" onclick="setCustomPreset('A-10, B-00, C-01')">🟢 Prefix-Free Code (A-10, B-00, C-01)</button>
+          <button class="preset-chip" onclick="setCustomPreset('A-0, B-01, C-10')">🔴 Ambiguous Code (A-0, B-01, C-10)</button>
+          <button class="preset-chip" onclick="setCustomPreset('A-0, B-01, C-011')">🟡 Non-Prefix but Uniquely Decodable (A-0, B-01, C-011)</button>
+          <button class="preset-chip" onclick="setCustomPreset('A-0, B-1, C-00')">🔴 Kraft Violation (A-0, B-1, C-00)</button>
+        </div>
+      </div>
+
+      <div id="analyzerBanners"></div>
+
+      <!-- Diagnostic Cards -->
+      <div class="metrics-grid" style="margin-top:20px;">
+        <div class="metric-card" id="card-pfr">
+          <div class="metric-label">Prefix-Free Check</div>
+          <div class="metric-value" id="val-pfr" style="font-size:18px;">PASS</div>
+          <div class="metric-sub" id="sub-pfr">No codeword is a prefix of another</div>
+        </div>
+        <div class="metric-card" id="card-ambig">
+          <div class="metric-label">Ambiguity / Decodability</div>
+          <div class="metric-value" id="val-ambig" style="font-size:18px;">UNAMBIGUOUS</div>
+          <div class="metric-sub" id="sub-ambig">Sardinas-Patterson verified</div>
+        </div>
+        <div class="metric-card" id="card-kraft">
+          <div class="metric-label">Kraft-McMillan Sum (K)</div>
+          <div class="metric-value" id="val-kraft">0.7500</div>
+          <div class="metric-sub" id="sub-kraft">K &le; 1.0 (Satisfied)</div>
+        </div>
+      </div>
+
+      <div class="table-container" style="margin-top:20px;">
+        <h3>Parsed Codewords</h3>
+        <table id="customCodeTable">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Binary Codeword</th>
+              <th>Length (Bits)</th>
+              <th>Kraft Term (2<sup>-l</sup>)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: FORMULAS & DATA STRUCTURES -->
+  <div id="tab-formulas" class="tab-content">
+    <div class="card">
+      <h2>Discrete Mathematics Formulas Used</h2>
+
+      <div class="formula-block">
+        <div class="formula-title">1. Shannon Entropy (Theoretical Information Limit)</div>
+        <div class="formula-math">H(X) = - &sum; p(x) &times; log<sub>2</sub>(p(x))</div>
+        <div class="formula-desc">
+          Measures the fundamental uncertainty or average information content produced by the source. Claude Shannon's source coding theorem proves that no lossless compression scheme can have an average length smaller than <code>H(X)</code>.
+        </div>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-title">2. Average Code Length (L)</div>
+        <div class="formula-math">L = &sum; p(x) &times; length(code(x)) = (Total Compressed Bits) / (Total Characters)</div>
+        <div class="formula-desc">
+          The expected number of bits required to encode one symbol. Huffman coding is mathematically proven to minimize <code>L</code> for any prefix code.
+        </div>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-title">3. Coding Efficiency (&eta;)</div>
+        <div class="formula-math">&eta; = ( H(X) / L ) &times; 100%</div>
+        <div class="formula-desc">
+          The ratio of theoretical minimum entropy to actual average code length. The closer &eta; is to 100%, the closer the algorithm is to optimal compact coding.
+        </div>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-title">4. Kraft-McMillan Inequality</div>
+        <div class="formula-math">K = &sum; 2<sup>-l<sub>i</sub></sup> &le; 1.0</div>
+        <div class="formula-desc">
+          A fundamental theorem in discrete mathematics: A uniquely decodable code with binary codeword lengths <code>l<sub>1</sub>, ..., l<sub>n</sub></code> exists if and only if Kraft's sum does not exceed 1.
+        </div>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-title">5. Redundancy (R)</div>
+        <div class="formula-math">R = L - H(X) &ge; 0</div>
+        <div class="formula-desc">
+          The excess bits used per symbol beyond the minimum entropy limit.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Data Structures Used in the Algorithms</h2>
+
+      <div class="ds-card">
+        <h4>Huffman Coding Data Structures</h4>
+        <p><strong>Priority Queue / Min-Heap:</strong> Stores tree nodes sorted by frequency. In each step, the two nodes with minimum frequencies are popped in <code>O(log N)</code> time, merged into a new composite node, and pushed back. Total tree construction time: <code>O(N log N)</code>.</p>
+        <p style="margin-top:6px;"><strong>Binary Tree (Trie):</strong> The final root node represents the entire source alphabet. Traversing left gives '0', traversing right gives '1'. Leaf nodes store individual source characters.</p>
+        <p style="margin-top:6px;"><strong>Ordered Map / Hash Table:</strong> Fast <code>O(1)</code> codeword lookup table during encoding.</p>
+      </div>
+
+      <div class="ds-card">
+        <h4>Shannon-Fano Coding Data Structures</h4>
+        <p><strong>Sorted Array:</strong> Characters are initially sorted in descending order of their probabilities in <code>O(N log N)</code>.</p>
+        <p style="margin-top:6px;"><strong>Recursive Divide-and-Conquer:</strong> The sorted list is partitioned into two subsets at an index <code>k</code> that minimizes <code>|&sum;<sub>left</sub> p - &sum;<sub>right</sub> p|</code>. Symbols in the left subset receive a '0' bit; symbols in the right subset receive a '1' bit. Continues recursively until subsets have size 1.</p>
+      </div>
+
+      <div class="ds-card">
+        <h4>Streaming Decoding Engine</h4>
+        <p><strong>Instantaneous Prefix Tree Walker:</strong> Because both Huffman and Shannon-Fano are prefix-free, an incoming bitstream is decoded deterministically by walking down the tree from the root with each bit. When a leaf is reached, the character is emitted immediately and the traversal resets to the root in <code>O(1)</code> space without lookahead.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  function setPreset(txt) {
+    document.getElementById('textInput').value = txt;
+    runCompression();
+  }
+
+  function setCustomPreset(txt) {
+    document.getElementById('customCodeInput').value = txt;
+    runCustomAnalysis();
+  }
+
+  // --- Algorithms in JavaScript ---
+
+  function getFrequencies(text) {
+    const freq = {};
+    for (let ch of text) {
+      freq[ch] = (freq[ch] || 0) + 1;
+    }
+    return freq;
+  }
+
+  // Huffman
+  function buildHuffmanTree(frequencies) {
+    let nodes = Object.keys(frequencies).map(ch => ({
+      char: ch,
+      freq: frequencies[ch],
+      left: null,
+      right: null
+    }));
+
+    if (nodes.length === 0) return null;
+    if (nodes.length === 1) {
+      return { char: null, freq: nodes[0].freq, left: nodes[0], right: null };
+    }
+
+    while (nodes.length > 1) {
+      // Stable sort by frequency
+      nodes.sort((a, b) => a.freq - b.freq);
+      const left = nodes.shift();
+      const right = nodes.shift();
+      const parent = {
+        char: null,
+        freq: left.freq + right.freq,
+        left: left,
+        right: right
+      };
+      nodes.push(parent);
+    }
+    return nodes[0];
+  }
+
+  function generateCodesFromTree(node, prefix = "", codes = {}) {
+    if (!node) return codes;
+    if (node.char !== null) {
+      codes[node.char] = prefix === "" ? "0" : prefix;
+      return codes;
+    }
+    generateCodesFromTree(node.left, prefix + "0", codes);
+    generateCodesFromTree(node.right, prefix + "1", codes);
+    return codes;
+  }
+
+  // Shannon-Fano
+  function buildShannonFano(text) {
+    const freq = getFrequencies(text);
+    const chars = Object.keys(freq);
+    if (chars.length === 0) return { codes: {}, tree: null };
+    if (chars.length === 1) {
+      const single = chars[0];
+      return {
+        codes: { [single]: "0" },
+        tree: { char: null, left: { char: single, left: null, right: null }, right: null }
+      };
+    }
+
+    const symbols = chars.map(ch => [ch, freq[ch]]);
+    symbols.sort((a, b) => b[1] - a[1]);
+
+    const codes = {};
+    symbols.forEach(item => codes[item[0]] = "");
+
+    function findSplit(syms) {
+      const total = syms.reduce((sum, item) => sum + item[1], 0);
+      let leftSum = 0;
+      let minDiff = total;
+      let splitPos = 1;
+
+      for (let i = 0; i < syms.length - 1; i++) {
+        leftSum += syms[i][1];
+        const rightSum = total - leftSum;
+        const diff = Math.abs(leftSum - rightSum);
+        if (diff < minDiff) {
+          minDiff = diff;
+          splitPos = i + 1;
+        }
+      }
+      return splitPos;
+    }
+
+    function divide(syms) {
+      if (syms.length === 1) {
+        return { char: syms[0][0], left: null, right: null };
+      }
+      const splitPos = findSplit(syms);
+      const leftGroup = syms.slice(0, splitPos);
+      const rightGroup = syms.slice(splitPos);
+
+      leftGroup.forEach(item => codes[item[0]] += "0");
+      rightGroup.forEach(item => codes[item[0]] += "1");
+
+      return {
+        char: null,
+        left: divide(leftGroup),
+        right: divide(rightGroup)
+      };
+    }
+
+    const tree = divide(symbols);
+    return { codes, tree };
+  }
+
+  // Decode binary
+  function decodeBinary(binary, codes) {
+    const rev = {};
+    for (let ch in codes) rev[codes[ch]] = ch;
+    let decoded = "";
+    let cur = "";
+    for (let b of binary) {
+      cur += b;
+      if (rev[cur] !== undefined) {
+        decoded += rev[cur];
+        cur = "";
+      }
+    }
+    return decoded;
+  }
+
+  // Prefix-Free and Sardinas-Patterson in JS
+  function checkPrefixFreeJS(codes) {
+    const keys = Object.keys(codes);
+    for (let i = 0; i < keys.length; i++) {
+      const c1 = codes[keys[i]];
+      for (let j = 0; j < keys.length; j++) {
+        if (i === j) continue;
+        const c2 = codes[keys[j]];
+        if (c2.startsWith(c1)) {
+          return {
+            isPrefixFree: false,
+            sym1: keys[i], code1: c1,
+            sym2: keys[j], code2: c2,
+            reason: `'${keys[i]}' (${c1}) is a prefix of '${keys[j]}' (${c2})`
+          };
+        }
+      }
+    }
+    return { isPrefixFree: true, reason: "No codeword is a prefix of another." };
+  }
+
+  function checkSardinasPattersonJS(codes) {
+    const words = Object.values(codes);
+    const C = new Set(words);
+    const kraftSum = words.reduce((acc, c) => acc + Math.pow(2, -c.length), 0);
+
+    // Duplicate codeword check
+    if (words.length !== C.size) {
+      return { isAmbiguous: true, kraftSum, reason: "Duplicate codewords assigned to distinct symbols." };
+    }
+
+    if (kraftSum > 1.000001) {
+      return { isAmbiguous: true, kraftSum, reason: `Violates Kraft-McMillan inequality (K = ${kraftSum.toFixed(4)} > 1.0).` };
+    }
+
+    const pfr = checkPrefixFreeJS(codes);
+    if (pfr.isPrefixFree) {
+      return { isAmbiguous: false, kraftSum, reason: "Prefix-free code: instantaneously and uniquely decodable." };
+    }
+
+    // Compute S1
+    let prev = new Set();
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words.length; j++) {
+        if (i === j) continue;
+        if (words[j].startsWith(words[i])) {
+          prev.add(words[j].slice(words[i].length));
+        }
+      }
+    }
+
+    for (let s of prev) {
+      if (C.has(s)) return { isAmbiguous: true, kraftSum, reason: `Dangling suffix '${s}' in S1 is an existing codeword.` };
+    }
+
+    const history = [new Set(prev)];
+
+    for (let round = 2; round <= 30; round++) {
+      let next = new Set();
+      for (let w of prev) {
+        for (let c of words) {
+          if (c.startsWith(w) && c.length > w.length) {
+            next.add(c.slice(w.length));
+          } else if (w.startsWith(c) && w.length > c.length) {
+            next.add(w.slice(c.length));
+          }
+        }
+      }
+
+      if (next.size === 0) {
+        return { isAmbiguous: false, kraftSum, reason: `Unambiguous: Suffix set S${round} exhausted without overlap.` };
+      }
+
+      for (let s of next) {
+        if (C.has(s)) return { isAmbiguous: true, kraftSum, reason: `Ambiguous: Dangling suffix '${s}' in round ${round} matches an original codeword.` };
+      }
+
+      for (let h of history) {
+        if (h.size === next.size && [...h].every(x => next.has(x))) {
+          return { isAmbiguous: false, kraftSum, reason: `Unambiguous: Suffix set cycled without finding an ambiguous string.` };
+        }
+      }
+
+      history.push(next);
+      prev = next;
+    }
+
+    return { isAmbiguous: false, kraftSum, reason: "Unambiguous: Passed finite Sardinas-Patterson tests." };
+  }
+
+  // --- SVG Tree Drawing ---
+  function drawTreeSvg(svgId, root) {
+    const svg = document.getElementById(svgId);
+    svg.innerHTML = "";
+    if (!root) return;
+
+    function getDepth(n) {
+      if (!n) return 0;
+      return 1 + Math.max(getDepth(n.left), getDepth(n.right));
+    }
+
+    const depth = getDepth(root);
+    let gap = 40;
+    if (depth > 1) gap = 30 * Math.pow(2, depth - 2);
+    if (gap < 70) gap = 70;
+    if (gap > 220) gap = 220;
+
+    let startX = gap * 2.2;
+    let minX = startX, maxX = startX, maxY = 40;
+
+    function measure(n, x, y, g) {
+      if (!n) return;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+      if (n.left) measure(n.left, x - g, y + 65, g / 2);
+      if (n.right) measure(n.right, x + g, y + 65, g / 2);
+    }
+    measure(root, startX, 40, gap);
+
+    const width = Math.max(maxX + gap * 1.5, 700);
+    const height = Math.max(maxY + 60, 320);
+
+    svg.setAttribute("width", width);
+    svg.setAttribute("height", height);
+
+    const r = 18;
+
+    // 1. Draw lines
+    function drawLines(n, x, y, g) {
+      if (!n) return;
+      const nextY = y + 65;
+      if (n.left) {
+        const lx = x - g;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x); line.setAttribute("y1", y + r);
+        line.setAttribute("x2", lx); line.setAttribute("y2", nextY - r);
+        line.setAttribute("stroke", "#5a7a9a"); line.setAttribute("stroke-width", "2");
+        svg.appendChild(line);
+
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("x", (x + lx)/2 - 7); txt.setAttribute("y", y + 30);
+        txt.setAttribute("fill", "#1e40af"); txt.setAttribute("font-size", "11");
+        txt.setAttribute("font-weight", "bold"); txt.textContent = "0";
+        svg.appendChild(txt);
+
+        drawLines(n.left, lx, nextY, g / 2);
+      }
+      if (n.right) {
+        const rx = x + g;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x); line.setAttribute("y1", y + r);
+        line.setAttribute("x2", rx); line.setAttribute("y2", nextY - r);
+        line.setAttribute("stroke", "#5a7a9a"); line.setAttribute("stroke-width", "2");
+        svg.appendChild(line);
+
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("x", (x + rx)/2 + 7); txt.setAttribute("y", y + 30);
+        txt.setAttribute("fill", "#1e40af"); txt.setAttribute("font-size", "11");
+        txt.setAttribute("font-weight", "bold"); txt.textContent = "1";
+        svg.appendChild(txt);
+
+        drawLines(n.right, rx, nextY, g / 2);
+      }
+    }
+    drawLines(root, startX, 40, gap);
+
+    // 2. Draw nodes
+    function drawNodes(n, x, y, g) {
+      if (!n) return;
+      const nextY = y + 65;
+      if (n.left) drawNodes(n.left, x - g, nextY, g / 2);
+      if (n.right) drawNodes(n.right, x + g, nextY, g / 2);
+
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", x); circle.setAttribute("cy", y); circle.setAttribute("r", r);
+      circle.setAttribute("stroke-width", "2");
+
+      const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      txt.setAttribute("x", x); txt.setAttribute("y", y + 4);
+      txt.setAttribute("text-anchor", "middle");
+      txt.setAttribute("font-size", "12");
+      txt.setAttribute("font-weight", "bold");
+
+      if (n.char !== null && n.char !== undefined) {
+        // Leaf
+        circle.setAttribute("fill", "#fef08a");
+        circle.setAttribute("stroke", "#ca8a04");
+        txt.setAttribute("fill", "#0f172a");
+        txt.textContent = n.char === " " ? "sp" : n.char;
+      } else {
+        // Internal
+        circle.setAttribute("fill", "#dbeafe");
+        circle.setAttribute("stroke", "#2563eb");
+        txt.setAttribute("fill", "#1e40af");
+        txt.textContent = "*";
+      }
+      svg.appendChild(circle);
+      svg.appendChild(txt);
+    }
+    drawNodes(root, startX, 40, gap);
+  }
+
+  // --- Main Compression Pipeline ---
+  function runCompression() {
+    const text = document.getElementById('textInput').value || "discrete mathematics";
+    const N = text.length;
+
+    // Frequencies
+    const freq = getFrequencies(text);
+    const chars = Object.keys(freq);
+
+    // Entropy
+    let entropy = 0;
+    for (let ch in freq) {
+      const p = freq[ch] / N;
+      entropy -= p * Math.log2(p);
+    }
+
+    // Huffman
+    const huffTree = buildHuffmanTree(freq);
+    const huffCodes = generateCodesFromTree(huffTree);
+    let huffBinary = "";
+    for (let ch of text) huffBinary += huffCodes[ch];
+    const huffDecoded = decodeBinary(huffBinary, huffCodes);
+
+    // Shannon-Fano
+    const sfResult = buildShannonFano(text);
+    const sfCodes = sfResult.codes;
+    const sfTree = sfResult.tree;
+    let sfBinary = "";
+    for (let ch of text) sfBinary += sfCodes[ch];
+    const sfDecoded = decodeBinary(sfBinary, sfCodes);
+
+    // Average lengths
+    let huffAvg = 0;
+    let sfAvg = 0;
+    for (let ch of chars) {
+      const p = freq[ch] / N;
+      huffAvg += p * (huffCodes[ch] ? huffCodes[ch].length : 0);
+      sfAvg += p * (sfCodes[ch] ? sfCodes[ch].length : 0);
+    }
+
+    const huffEff = (entropy / huffAvg) * 100;
+    const sfEff = (entropy / sfAvg) * 100;
+    const origBits = N * 8;
+    const huffBits = huffBinary.length;
+    const sfBits = sfBinary.length;
+
+    // Update KPIs
+    document.getElementById('kpi-entropy').innerText = entropy.toFixed(3);
+    document.getElementById('kpi-huff-avg').innerText = huffAvg.toFixed(3);
+    document.getElementById('kpi-huff-eff').innerText = `Efficiency: ${huffEff.toFixed(2)}%`;
+    document.getElementById('kpi-sf-avg').innerText = sfAvg.toFixed(3);
+    document.getElementById('kpi-sf-eff').innerText = `Efficiency: ${sfEff.toFixed(2)}%`;
+
+    document.getElementById('kpi-orig-bits').innerText = origBits;
+    document.getElementById('kpi-huff-bits').innerText = huffBits;
+    document.getElementById('kpi-sf-bits').innerText = sfBits;
+
+    const winnerEl = document.getElementById('kpi-winner');
+    if (huffBits < sfBits) {
+      winnerEl.innerText = `🏆 Huffman is ${((1 - huffBits/sfBits)*100).toFixed(1)}% smaller`;
+      winnerEl.style.color = "var(--accent-huff)";
+    } else if (huffBits === sfBits) {
+      winnerEl.innerText = "🤝 Identical compression size";
+      winnerEl.style.color = "var(--text-muted)";
+    } else {
+      winnerEl.innerText = `🏆 Shannon-Fano is ${((1 - sfBits/huffBits)*100).toFixed(1)}% smaller`;
+      winnerEl.style.color = "var(--accent-sf)";
+    }
+
+    // Populate Table
+    const tbody = document.querySelector('#codesTable tbody');
+    tbody.innerHTML = "";
+    let totalProb = 0;
+    let totalHuffContrib = 0;
+    let totalSfContrib = 0;
+
+    chars.forEach(ch => {
+      const count = freq[ch];
+      const p = count / N;
+      totalProb += p;
+
+      const hCode = huffCodes[ch] || "";
+      const hLen = hCode.length;
+      const hContrib = p * hLen;
+      totalHuffContrib += hContrib;
+
+      const sfCode = sfCodes[ch] || "";
+      const sfLen = sfCode.length;
+      const sfContrib = p * sfLen;
+      totalSfContrib += sfContrib;
+
+      const charName = ch === " " ? "space" : ch;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${charName}</strong></td>
+        <td>${count}</td>
+        <td>${p.toFixed(3)}</td>
+        <td><span class="badge badge-huff">${hCode}</span></td>
+        <td>${hLen}</td>
+        <td>${hContrib.toFixed(3)}</td>
+        <td><span class="badge badge-sf">${sfCode}</span></td>
+        <td>${sfLen}</td>
+        <td>${sfContrib.toFixed(3)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const tfoot = document.querySelector('#codesTable tfoot') || document.createElement('tfoot');
+    tfoot.innerHTML = `
+      <tr style="background:#f1f5f9; font-weight:700;">
+        <td>Total (${chars.length} chars)</td>
+        <td>${N}</td>
+        <td>${totalProb.toFixed(3)}</td>
+        <td colspan="2">Avg Length L:</td>
+        <td style="color:#0369a1;">${totalHuffContrib.toFixed(3)}</td>
+        <td colspan="2">Avg Length L:</td>
+        <td style="color:#15803d;">${totalSfContrib.toFixed(3)}</td>
+      </tr>
+    `;
+    document.getElementById('codesTable').appendChild(tfoot);
+
+    // Bitstreams & Decoded
+    document.getElementById('huffBinary').innerText = huffBinary;
+    document.getElementById('huffDecoded').innerText = huffDecoded;
+    document.getElementById('sfBinary').innerText = sfBinary;
+    document.getElementById('sfDecoded').innerText = sfDecoded;
+
+    // Draw Trees
+    drawTreeSvg('huffmanSvg', huffTree);
+    drawTreeSvg('shannonSvg', sfTree);
+  }
+
+  // --- Custom Code Analyzer ---
+  function parseCustomCodeInput(inputStr) {
+    const codes = {};
+    const regex = /([^\s,;:=\-]+)\s*[\-:=]\s*([01]+)/g;
+    let match;
+    while ((match = regex.exec(inputStr)) !== null) {
+      codes[match[1]] = match[2];
+    }
+    return codes;
+  }
+
+  function runCustomAnalysis() {
+    const inputStr = document.getElementById('customCodeInput').value;
+    const codes = parseCustomCodeInput(inputStr);
+    const keys = Object.keys(codes);
+
+    const bannerDiv = document.getElementById('analyzerBanners');
+    bannerDiv.innerHTML = "";
+
+    if (keys.length === 0) {
+      bannerDiv.innerHTML = `<div class="status-banner warn">Please enter valid symbol-code pairs (e.g. A-10, B-00, C-01).</div>`;
+      return;
+    }
+
+    const pfr = checkPrefixFreeJS(codes);
+    const ambig = checkSardinasPattersonJS(codes);
+
+    // Banners
+    if (pfr.isPrefixFree && !ambig.isAmbiguous) {
+      bannerDiv.innerHTML = `
+        <div class="status-banner pass">
+          ✅ PASSED: The code is strictly PREFIX-FREE and GUARANTEED UNAMBIGUOUS (instantaneous decoding).
+        </div>`;
+    } else if (!pfr.isPrefixFree && !ambig.isAmbiguous) {
+      bannerDiv.innerHTML = `
+        <div class="status-banner warn">
+          ⚠️ NOTICE: NOT Prefix-Free (${pfr.reason}), BUT uniquely decodable without ambiguity (via Sardinas-Patterson algorithm).
+        </div>`;
+    } else {
+      bannerDiv.innerHTML = `
+        <div class="status-banner fail">
+          ❌ FAILED: The code is AMBIGUOUS (${ambig.reason}). Encoded bitstreams can map to multiple original texts!
+        </div>`;
+    }
+
+    // KPI Cards
+    const valPfr = document.getElementById('val-pfr');
+    const subPfr = document.getElementById('sub-pfr');
+    if (pfr.isPrefixFree) {
+      valPfr.innerText = "PASSED"; valPfr.style.color = "var(--success)";
+      subPfr.innerText = "No codeword is prefix of another";
+    } else {
+      valPfr.innerText = "FAILED"; valPfr.style.color = "var(--danger)";
+      subPfr.innerText = pfr.reason;
+    }
+
+    const valAmbig = document.getElementById('val-ambig');
+    const subAmbig = document.getElementById('sub-ambig');
+    if (ambig.isAmbiguous) {
+      valAmbig.innerText = "AMBIGUOUS"; valAmbig.style.color = "var(--danger)";
+      subAmbig.innerText = ambig.reason;
+    } else {
+      valAmbig.innerText = "UNAMBIGUOUS"; valAmbig.style.color = "var(--success)";
+      subAmbig.innerText = ambig.reason;
+    }
+
+    const valKraft = document.getElementById('val-kraft');
+    const subKraft = document.getElementById('sub-kraft');
+    valKraft.innerText = ambig.kraftSum.toFixed(4);
+    if (ambig.kraftSum <= 1.000001) {
+      valKraft.style.color = "var(--success)";
+      subKraft.innerText = "K ≤ 1.0 (Kraft Inequality Satisfied)";
+    } else {
+      valKraft.style.color = "var(--danger)";
+      subKraft.innerText = "K > 1.0 (Kraft Inequality Violated!)";
+    }
+
+    // Table
+    const tbody = document.querySelector('#customCodeTable tbody');
+    tbody.innerHTML = "";
+    keys.forEach(sym => {
+      const code = codes[sym];
+      const len = code.length;
+      const term = Math.pow(2, -len);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${sym}</strong></td>
+        <td><code>${code}</code></td>
+        <td>${len}</td>
+        <td>${term.toFixed(4)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Event Listeners
+  document.getElementById('textInput').addEventListener('input', runCompression);
+  document.getElementById('customCodeInput').addEventListener('input', runCustomAnalysis);
+
+  // Initialize
+  runCompression();
+  runCustomAnalysis();
+</script>
+
+</body>
+</html>
